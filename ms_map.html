@@ -87,6 +87,8 @@ pop["HS"]=[11242,11404,11591,11753,11994,12128,12178,12264,12298,12296,12196,121
 var baseurl="https://rrrpdx.github.io/BoundaryAdjustment/ms_map.html"
 var colors=["black","red","green","blue","yellow","cyan","magenta","lime","purple","teal"];
 var middle_schools=["","Stoller","Timberland","Five Oaks","Meadow Park","Cedar Park","Mountainview","Highland Park","Conestoga","Whitford"];
+var ms_perm_cap=[0,1081,1100,1047,855,872,990,871,959,858];
+var ms_temp_cap=[0,1375,1100,1047,939,998,1074,955,1085,858];
 function init() {
   var urlParams = new URLSearchParams(window.location.search);
   var key=urlParams.get('key');
@@ -202,8 +204,12 @@ function updateText(){
  	  var e = document.getElementById("r"+i).innerHTML="";
 	  if (regionArray[i].length>0) {
 		var pop_percent=[];
+		var ms_temp_percent=[];
+		var ms_perm_percent=[];
 		for (j=0;j<12;j++) {
 			pop_percent[j]=(100*studentArray[i][j]/pop[strSchool][j]).toFixed(1)
+			ms_temp_percent[j]=(100*studentArray[i][j]/ms_temp_cap[i]).toFixed(0)
+			ms_perm_percent[j]=(100*studentArray[i][j]/ms_perm_cap[i]).toFixed(0)
 		}
 		htmlString=""
 		htmlString+='<span style="color:'+colors[i]+'">'
@@ -220,6 +226,14 @@ function updateText(){
 		htmlString+="</tr><tr><td> % of total</td>"
 		for (j=0;j<12;j++) {
 			htmlString+="<td>"+pop_percent[j]+"<td>";
+		}
+		htmlString+="</tr><tr><td> % of perm capacity</td>"
+		for (j=0;j<12;j++) {
+			htmlString+="<td>"+ms_perm_percent[j]+"<td>";
+		}
+		htmlString+="</tr><tr><td> % of temp_capacity</td>"
+		for (j=0;j<12;j++) {
+			htmlString+="<td>"+ms_temp_percent[j]+"<td>";
 		}
 		htmlString+="</tr></table><br>";
 
