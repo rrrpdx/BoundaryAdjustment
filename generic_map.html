@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="cache-control" content="no-cache"> 
+<meta http-equiv="expires" content="0"> 
+<meta http-equiv="pragma" content="no-cache">
+<meta charset="utf-8">
+<style>
+@import url(//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.css);
+
+#map { 
+  height: 800px;
+}
+svg {
+  position: relative;
+  }
+  
+path {
+   stroke: red;
+   stroke-width:2;
+   stroke-opacity:1;
+   }
+path:hover {
+    fill:brown;
+    fill-opacity:0.7;
+    }
+.region0{
+    fill:#000;
+    fill-opacity:0;
+    }    
+.region1{
+    fill:red;
+    fill-opacity:0.4;
+}
+.region2{
+    fill:green;
+    fill-opacity:0.4;
+}
+.region3{
+    fill:blue;
+    fill-opacity:0.4;
+}
+.region4{
+    fill:yellow;
+    fill-opacity:0.4;
+}
+.region5{
+    fill:cyan;
+    fill-opacity:0.4;
+}
+.region6{
+    fill:magenta;
+    fill-opacity:0.4;
+}
+.region7{
+    fill:lime;
+    fill-opacity:0.4;
+}
+.region8{
+    fill:purple;
+    fill-opacity:0.4;
+}
+.region9{
+    fill:teal;
+    fill-opacity:0.4;
+}
+
+</style>
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.js"></script>
+
+<script>
+var years=[2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026];
+var pop={}
+pop["ES"]=[18285,18021,17744,17621,17580,17417,17385,17378,17184,17097,16917,16864];
+pop["MS"]=[9149,9309,9320,9339,9317,9323,9354,9185,9164,9023,9123,8985];
+pop["HS"]=[11242,11404,11591,11753,11994,12128,12178,12264,12298,12296,12196,12150];
+var baseurl="http://localhost:8000/generic_map.html"
+var colors=["black","red","green","blue","yellow","cyan","magenta","lime","purple","teal"];
+
+function init() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var key=urlParams.get('key');
+  var s=urlParams.get('s');
+  var map = new L.Map("map", {center: [45.5, -122.83], zoom: 12})
+    .addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
+
+  if (s) {
+	document.getElementById("school").selectedIndex = urlParams.get('s');
+  }
+
+  var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+    g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+  d3.json("map2.geojson"+ '?' + Math.floor(Math.random() * 1000), function(error, collection) {
+    if (error) throw error;
+
+  var transform = d3.geo.transform({point: projectPoint}),
+      path = d3.geo.path().projection(transform);
+  
+  var feature = g.selectAll("path")
+    .data(collection.features)
+    .enter().append("path")
+	.attr("id", function(d, i) { return "elem-school-" + i; })
+    .attr('class',function(d,i) {
+		if (key) {
+			if(key.slice(i)) {
+				return "region"+key.slice(i,i+1);
+			}
+			else {
+				return "region0"
+			}
+		}
+		else {
+			return "region0"
+		}
+	})
+    .on("click", function(d){
+//        console.log('d3 click');
+        if (d3.event.defaultPrevented) return;
+//		var e2 = document.getElementById("school");
+//		var strSchool = e2.options[e2.selectedIndex].value;
+//		console.log(d.properties[strSchool])
+		var e = document.getElementById("region");
+		var strRegion = "region"+e.options[e.selectedIndex].value;
+		var curRegion=d3.select(this).attr('class');
+//        console.log('d3 clicked'+' '+strRegion);
+		if (curRegion!=strRegion) {
+			d3.select(this).attr('class',strRegion);
+		}
+		else {
+			d3.select(this).attr('class',"region0");
+		}
+		updateText();
+        })
+
+        
+
+  map.on("viewreset", reset);
+  reset();
+  // Reposition the SVG to cover the features.
+   function reset() {
+    var bounds = path.bounds(collection),
+        topLeft = bounds[0],
+        bottomRight = bounds[1];
+
+    svg .attr("width", bottomRight[0] - topLeft[0])
+        .attr("height", bottomRight[1] - topLeft[1])
+        .style("left", topLeft[0] + "px")
+        .style("top", topLeft[1] + "px");
+
+    g   .attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+    feature.attr("d", path);
+   }
+
+  // Use Leaflet to implement a D3 geometric transformation.
+   function projectPoint(x, y) {
+       var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+      this.stream.point(point.x, point.y);
+   }
+	updateText();
+  });
+  
+} 
+function updateText(){
+	regionArray=[];
+    studentArray=[];
+	var e2 = document.getElementById("school");
+	var strSchool = e2.options[e2.selectedIndex].value;
+	var outurl=baseurl+"?s="+e2.selectedIndex+"&key=";
+	for (i=0;i<34;i++) {
+		d3.select("#elem-school-"+i).
+		each(function(){
+			outurl+=d3.select(this).attr("class").slice(-1)
+		});
+
+	}
+	document.getElementById("copyurl").innerHTML=outurl;
+	for (i=1;i<10;i++) {
+	  regionArray[i]=[];
+	  studentArray[i]=[];
+      for (j=0;j<12;j++) {
+		studentArray[i][j]=0;
+	  }
+      d3.selectAll(".region"+i)
+	  .each(function(d){
+		regionArray[i].push(d.properties.name);
+		for(j=0;j<12;j++) {
+			studentArray[i][j]+=d.properties[strSchool][j]
+		}
+	  });
+ 	  var e = document.getElementById("r"+i).innerHTML="";
+	  if (regionArray[i].length>0) {
+		var pop_percent=[];
+		for (j=0;j<12;j++) {
+			pop_percent[j]=(100*studentArray[i][j]/pop[strSchool][j]).toFixed(1)
+		}
+		htmlString=""
+		htmlString+='<span style="color:'+colors[i]+'">'
+		htmlString+="Region: "+i+"<BR></span>";
+		htmlString+=regionArray[i].join(',')+"<BR>";
+		htmlString+="<table><tr><td>Year</td>";
+		for (j=0;j<12;j++) {
+			htmlString+="<td>"+years[j]+"<td>";
+		}
+		htmlString+="</tr><tr><td>Num Students</td>"
+		for (j=0;j<12;j++) {
+			htmlString+="<td>"+studentArray[i][j]+"<td>";
+		}
+		htmlString+="</tr><tr><td> % of total</td>"
+		for (j=0;j<12;j++) {
+			htmlString+="<td>"+pop_percent[j]+"<td>";
+		}
+		htmlString+="</tr></table><br>";
+
+		var e = document.getElementById("r"+i).innerHTML=htmlString;
+		}
+    }
+//	  console.log(studentArray)
+
+}
+
+
+
+</script>
+<body onload="init();">
+<div style="width: 100%;">
+<div style="width: 50%;float: left"> 
+<div id="copyurl">
+http://localhost:8000/esmap2.html
+</div>
+<div>
+Region: 
+<select id="region">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value=""> </option>
+</select>
+</div>
+<p id="map">
+</div>
+<div style="margin-left: 55%"> 
+School Age: 
+<select id="school" onchange="updateText();">
+  <option value="ES">Elementary</option>
+  <option value="MS">Middle</option>
+  <option value="HS">High</option>
+</select>
+<div id="r1"></div>
+<div id="r2"></div>
+<div id="r3"></div>
+<div id="r4"></div>
+<div id="r5"></div>
+<div id="r6"></div>
+<div id="r7"></div>
+<div id="r8"></div>
+<div id="r9"></div>
+</div>
+</div>
+</body>
+</html>
