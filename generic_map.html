@@ -74,7 +74,7 @@ var pop={}
 pop["ES"]=[18285,18021,17744,17621,17580,17417,17385,17378,17184,17097,16917,16864];
 pop["MS"]=[9149,9309,9320,9339,9317,9323,9354,9185,9164,9023,9123,8985];
 pop["HS"]=[11242,11404,11591,11753,11994,12128,12178,12264,12298,12296,12196,12150];
-var baseurl="http://localhost:8000/generic_map.html"
+var baseurl="https://rrrpdx.github.io/BoundaryAdjustment/generic_map.html"
 var colors=["black","red","green","blue","yellow","cyan","magenta","lime","purple","teal"];
 
 function init() {
@@ -91,7 +91,7 @@ function init() {
   var svg = d3.select(map.getPanes().overlayPane).append("svg"),
     g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-  d3.json("map2.geojson"+ '?' + Math.floor(Math.random() * 1000), function(error, collection) {
+  d3.json("https://rrrpdx.github.io/BoundaryAdjustment/map2.geojson"+ '?' + Math.floor(Math.random() * 1000), function(error, collection) {
     if (error) throw error;
 
   var transform = d3.geo.transform({point: projectPoint}),
